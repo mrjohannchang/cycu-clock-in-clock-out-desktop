@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "cycu-clock-in-clock-out-app"
+version = "0.1.0"
+description = "CYCU 自動打卡"
+license = "MPL-2.0"
+authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/changyuheng/cycu-clock-in-clock-out-app"
+packages = [
+    { include = "app", from = "packages" },
+    { include = "cycu_cico_sdk", from = "packages" },
+]
+
+[tool.poetry.dependencies]
+python = "~3.9"
+PySide6 = "^6.1.2"
+
+[tool.poetry.dev-dependencies]
+pyinstaller = "^4.5.1"
+
+[tool.poetry.scripts]
+cycu-cico-app = 'app.app:main'
+# cycu-cico = 'cli.cli:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
