@@ -1,3 +1,5 @@
+config.toml
+
 # Python {{{
 led / optimized / DLL files
 __pycache__/

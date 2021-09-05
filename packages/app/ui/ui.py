@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 from typing import Optional, TypeVar
 
 from .. import ui_model
@@ -17,7 +18,7 @@ class UI:
     def bind(self: Self, model: U) -> Self:
         return self
 
-    def inflate(self: Self, ui_path: Optional[str] = None) -> Self:
+    def inflate(self: Self, ui_path: Optional[pathlib.Path] = None) -> Self:
         return self
 
     def show(self: Self) -> Self:

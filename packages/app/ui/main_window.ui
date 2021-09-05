@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>750</width>
-    <height>685</height>
+    <width>756</width>
+    <height>727</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>CYCU Clock-in Clock-out</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
@@ -37,9 +37,9 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QTabWidget" name="tabWidget">
+         <widget class="QTabWidget" name="tab_widget">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -79,14 +79,8 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QTimeEdit" name="timeEdit_2"/>
-              </item>
-              <item row="2" column="2">
-               <widget class="QTimeEdit" name="timeEdit_3"/>
-              </item>
               <item row="0" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit">
+               <widget class="QLineEdit" name="account_line_edit">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -101,11 +95,8 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="2">
-               <widget class="QTimeEdit" name="timeEdit_4"/>
-              </item>
-              <item row="0" column="3" rowspan="2">
-               <widget class="QPushButton" name="pushButton_4">
+              <item row="2" column="3" rowspan="2">
+               <widget class="QPushButton" name="cancel_push_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -113,7 +104,173 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Save</string>
+                 <string>Cancel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1" colspan="2">
+               <widget class="QLineEdit" name="password_line_edit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="echoMode">
+                 <enum>QLineEdit::Password</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" rowspan="5" colspan="3">
+               <widget class="QGroupBox" name="only_for_repetition_group_box">
+                <property name="title">
+                 <string>Only For Repetition</string>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_9">
+                 <item row="0" column="0">
+                  <layout class="QGridLayout" name="gridLayout_8">
+                   <item row="0" column="3" rowspan="4">
+                    <widget class="QPlainTextEdit" name="specific_dates_text_edit">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>150</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="plainText">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_6">
+                     <property name="text">
+                      <string>Exclude Specific Dates</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QCheckBox" name="exclude_specific_dates_check_box">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_5">
+                     <property name="text">
+                      <string>Exclude Weekends</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QCheckBox" name="exclude_weekends_check_box">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_7">
+                     <property name="text">
+                      <string>Clock-in Time Range</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QTimeEdit" name="clock_in_start_time_edit">
+                     <property name="displayFormat">
+                      <string>h:mm:ss AP</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="2">
+                    <widget class="QLabel" name="label_9">
+                     <property name="text">
+                      <string>(One date per line)</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QLabel" name="label_4">
+                     <property name="text">
+                      <string>Specific Dates</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="2">
+                    <widget class="QTimeEdit" name="clock_in_end_time_edit">
+                     <property name="displayFormat">
+                      <string>h:mm:ss AP</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QTimeEdit" name="clock_out_start_time_edit">
+                     <property name="displayFormat">
+                      <string>h:mm:ss AP</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="2">
+                    <widget class="QTimeEdit" name="clock_out_end_time_edit">
+                     <property name="displayFormat">
+                      <string>h:mm:ss AP</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Clock-out Time Range</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="6" column="3">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/changyuheng/cycu-clock-in-clock-out-app/issues&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Bug Report&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="openExternalLinks">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -127,54 +284,8 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>Clock-in Time Range</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="3" rowspan="2">
-               <widget class="QPushButton" name="pushButton_5">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Cancel</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QTimeEdit" name="timeEdit"/>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Clock-out Time Range</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="3" rowspan="2">
-               <widget class="QPushButton" name="pushButton_3">
+              <item row="0" column="3" rowspan="2">
+               <widget class="QPushButton" name="edit_push_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -186,37 +297,16 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_5">
+              <item row="4" column="3" rowspan="2">
+               <widget class="QPushButton" name="save_push_button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="text">
-                 <string>Exclude Saturdays and Sundays</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Exclude Known Holidays</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QCheckBox" name="checkBox_2">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QCheckBox" name="checkBox">
-                <property name="text">
-                 <string/>
+                 <string>Save</string>
                 </property>
                </widget>
               </item>
@@ -224,15 +314,41 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tab_2">
+          <widget class="QWidget" name="tab_3">
            <attribute name="title">
             <string>Action</string>
            </attribute>
-           <layout class="QGridLayout" name="gridLayout_4">
+           <layout class="QGridLayout" name="gridLayout_7">
             <item row="0" column="0">
-             <layout class="QGridLayout" name="gridLayout_5">
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="1" column="1">
+               <widget class="QPushButton" name="clock_out_push_button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Clock out</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="clock_in_push_button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Clock in</string>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="0" colspan="2">
-               <widget class="QLabel" name="label_4">
+               <widget class="QLabel" name="status_label">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -242,12 +358,44 @@
                 <property name="font">
                  <font>
                   <pointsize>24</pointsize>
-                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Next: Clock in at 8:58:39 on 2021/9/3</string>
+                 <string>Status: Clocked &lt;in/out&gt; at &lt;time&gt; on &lt;date&gt;</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Repetitive Action</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="0" column="0" colspan="2">
+               <widget class="QLabel" name="next_label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>24</pointsize>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Next: Clock &lt;in/out&gt; at &lt;time&gt; on &lt;date&gt;</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -255,7 +403,7 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="start_push_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -268,7 +416,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="stop_push_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                   <horstretch>0</horstretch>
@@ -293,8 +441,6 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="cover-image.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
