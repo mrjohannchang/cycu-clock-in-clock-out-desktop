@@ -1,5 +1,7 @@
 import datetime
 
+from typing import Optional
+
 import cycu_cico_sdk as sdk
 from .ui_model import UIModel
 
@@ -38,8 +40,8 @@ class MainWindowModel(UIModel):
         self._exclude_weekends: bool = sdk.get_config().exclude_weekends
         self._exclude_specific_dates: bool = sdk.get_config().exclude_specific_dates
         self._specific_dates: list[str] = sdk.get_config().specific_dates
-        self._status: str = ''
-        self._next: str = ''
+        self._status: Optional[sdk.Status] = None
+        self._next: Optional[sdk.Status] = None
 
     @property
     def tab_bar_enabled(self) -> bool:
@@ -258,19 +260,19 @@ class MainWindowModel(UIModel):
         self._specific_dates = value
 
     @property
-    def status(self) -> str:
+    def status(self) -> Optional[sdk.Status]:
         return self._status
 
     @status.setter
-    def status(self, value: str):
+    def status(self, value: sdk.Status):
         self._status = value
 
     @property
-    def next(self) -> str:
+    def next(self) -> Optional[sdk.Status]:
         return self._next
 
     @next.setter
-    def next(self, value: str):
+    def next(self, value: sdk.Status):
         self._next = value
 
     def save(self):
@@ -340,10 +342,7 @@ class MainWindowModel(UIModel):
         self.cancel_push_button_enabled = True
 
     def update_status(self):
-        sign_log: sdk.SignLog = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password) \
-            .get_last_sign_log()
-        self.status = f"Status: Clocked {'in' if sign_log.state == sdk.State.CLOCK_IN else 'out'}" \
-                      f" at {sign_log.date_time.time().isoformat()} on {sign_log.date_time.date().isoformat()}"
+        self.status: sdk.Status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
 
     def clock_in(self):
         sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)

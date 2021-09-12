@@ -167,6 +167,9 @@ class MainWindow(UI, sdk.Singleton):
 
         self.stop_push_button.setEnabled(main_window_model.stop_push_button_enabled)
         self.start_push_button.setEnabled(main_window_model.start_push_button_enabled)
+
+        if 1 <= self.tab_widget.currentIndex() <= 2:
+            main_window_model.update_status()
         return self
 
     def inflate(self, ui_path: Optional[pathlib.Path] = None) -> MainWindow:
@@ -330,11 +333,15 @@ class MainWindow(UI, sdk.Singleton):
     def on_specific_dates_model_changed(self, value: list[str]):
         self.specific_dates_text_edit.setPlainText('\n'.join(value))
 
-    def on_status_model_changed(self, value: str):
-        self.status_label.setText(value)
+    def on_status_model_changed(self, value: sdk.Status):
+        self.status_label.setText(
+            f"Status: Clocked {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
+            f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
 
-    def on_next_model_changed(self, value: str):
-        self.next_label.setText(value)
+    def on_next_model_changed(self, value: sdk.Status):
+        self.next_label.setText(
+            f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
+            f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
 
     def on_account_line_edit_changed(self, value: str):
         self.main_window_model.account = value

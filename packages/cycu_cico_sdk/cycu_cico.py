@@ -15,7 +15,7 @@ from .constant import State, Url
 
 
 @dataclasses.dataclass
-class SignLog:
+class Status:
     date_time: datetime.datetime
     state: State
 
@@ -103,21 +103,20 @@ class SimpleCycuCico:
 
         WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'profile'))
 
-    def get_last_sign_log(self) -> SignLog:
+    def get_status(self) -> Status:
         self.edge_driver.get(urllib.parse.urljoin(Url.BASE, Url.ATTENDANCE))
 
         d: webdriver.Edge
         WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'logTable'))
 
-        log_table:
         log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
 
         last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
         last_sign_state: str = re.search('無紙化平台簽.', log)[0]
-        sign_log: SignLog = SignLog(
+        status: Status = Status(
             date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
             state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
-        return sign_log
+        return status
 
     def clock(self, state: State):
         self.edge_driver.get(Url.BASE)
