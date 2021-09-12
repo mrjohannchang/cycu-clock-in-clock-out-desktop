@@ -9,7 +9,7 @@ from . import ui_model
 
 
 def main() -> int:
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app: QApplication = QApplication(sys.argv)
     _ = ui.MainWindow().inflate().bind(ui_model.MainWindowModel()).show()

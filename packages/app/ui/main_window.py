@@ -119,24 +119,18 @@ class MainWindow(UI, sdk.Singleton):
         main_window_model.add_on_changed_observer(
             self.on_start_push_button_enabled_changed, 'start_push_button_enabled')
 
-        main_window_model.add_on_changed_observer(
-            self.on_account_model_changed, 'account')
-        main_window_model.add_on_changed_observer(
-            self.on_password_model_changed, 'password')
-        main_window_model.add_on_changed_observer(
-            self.on_clock_in_start_time_model_changed, 'clock_in_start_time')
-        main_window_model.add_on_changed_observer(
-            self.on_clock_in_end_time_model_changed, 'clock_in_end_time')
-        main_window_model.add_on_changed_observer(
-            self.on_clock_out_start_time_model_changed, 'clock_out_start_time')
-        main_window_model.add_on_changed_observer(
-            self.on_clock_out_end_time_model_changed, 'clock_out_end_time')
-        main_window_model.add_on_changed_observer(
-            self.on_exclude_weekends_model_changed, 'exclude_weekends')
+        main_window_model.add_on_changed_observer(self.on_account_model_changed, 'account')
+        main_window_model.add_on_changed_observer(self.on_password_model_changed, 'password')
+        main_window_model.add_on_changed_observer(self.on_clock_in_start_time_model_changed, 'clock_in_start_time')
+        main_window_model.add_on_changed_observer(self.on_clock_in_end_time_model_changed, 'clock_in_end_time')
+        main_window_model.add_on_changed_observer(self.on_clock_out_start_time_model_changed, 'clock_out_start_time')
+        main_window_model.add_on_changed_observer(self.on_clock_out_end_time_model_changed, 'clock_out_end_time')
+        main_window_model.add_on_changed_observer(self.on_exclude_weekends_model_changed, 'exclude_weekends')
         main_window_model.add_on_changed_observer(
             self.on_exclude_specific_dates_model_changed, 'exclude_specific_dates')
-        main_window_model.add_on_changed_observer(
-            self.on_specific_dates_model_changed, 'specific_dates')
+        main_window_model.add_on_changed_observer(self.on_specific_dates_model_changed, 'specific_dates')
+        main_window_model.add_on_changed_observer(self.on_status_model_changed, 'status')
+        main_window_model.add_on_changed_observer(self.on_next_model_changed, 'next')
 
         self.tab_widget.currentChanged.connect(self.on_active_tab_changed)
         self.account_line_edit.textChanged.connect(self.on_account_line_edit_changed)
@@ -227,6 +221,11 @@ class MainWindow(UI, sdk.Singleton):
         return self
 
     def on_active_tab_changed(self, index: int):
+        if index == 1:
+            self.main_window_model.update_status()
+        elif index == 2:
+            pass
+
         sdk.get_config().active_tab = index
         sdk.save_config()
 
@@ -328,6 +327,12 @@ class MainWindow(UI, sdk.Singleton):
 
     def on_specific_dates_model_changed(self, value: list[str]):
         self.specific_dates_text_edit.setPlainText('\n'.join(value))
+
+    def on_status_model_changed(self, value: str):
+        self.status_label.setText(value)
+
+    def on_next_model_changed(self, value: str):
+        self.next_label.setText(value)
 
     def on_account_line_edit_changed(self, value: str):
         self.main_window_model.account = value
