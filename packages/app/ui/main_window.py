@@ -145,6 +145,8 @@ class MainWindow(UI, sdk.Singleton):
         self.save_push_button.clicked.connect(self.on_save_push_button_clicked)
         self.cancel_push_button.clicked.connect(self.on_cancel_push_button_clicked)
         self.edit_push_button.clicked.connect(self.on_edit_push_button_clicked)
+        self.clock_in_push_button.clicked.connect(self.on_clock_in_push_button_clicked)
+        self.clock_out_push_button.clicked.connect(self.on_clock_out_push_button_clicked)
 
         self.tab_widget.setEnabled(main_window_model.tab_bar_enabled)
         self.account_line_edit.setEnabled(main_window_model.account_line_edit_enabled)

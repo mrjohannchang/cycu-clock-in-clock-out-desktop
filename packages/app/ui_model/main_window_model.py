@@ -22,8 +22,8 @@ class MainWindowModel(UIModel):
         self._cancel_push_button_enabled: bool = False
         self._edit_push_button_enabled: bool = True
 
-        self._clock_in_push_button_enabled: bool = False
-        self._clock_out_push_button_enabled: bool = False
+        self._clock_in_push_button_enabled: bool = True
+        self._clock_out_push_button_enabled: bool = True
 
         self._stop_push_button_enabled: bool = False
         self._start_push_button_enabled: bool = False
@@ -346,10 +346,12 @@ class MainWindowModel(UIModel):
                       f" at {sign_log.date_time.time().isoformat()} on {sign_log.date_time.date().isoformat()}"
 
     def clock_in(self):
-        pass
+        sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)
+        self.update_status()
 
     def clock_out(self):
-        pass
+        sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_OUT)
+        self.update_status()
 
     def stop(self):
         pass

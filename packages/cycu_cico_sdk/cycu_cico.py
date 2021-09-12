@@ -8,6 +8,7 @@ import urllib.parse
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 
 from .constant import State, Url
@@ -16,7 +17,7 @@ from .constant import State, Url
 @dataclasses.dataclass
 class SignLog:
     date_time: datetime.datetime
-    state: int
+    state: State
 
 
 class SimpleCycuCico:
@@ -98,11 +99,9 @@ class SimpleCycuCico:
         WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.NAME, 'UserNm'))
         self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
         self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
-
         self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
 
         WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'profile'))
-        logging.info(f'{self.edge_driver.current_url=}')
 
     def get_last_sign_log(self) -> SignLog:
         self.edge_driver.get(urllib.parse.urljoin(Url.BASE, Url.ATTENDANCE))
@@ -110,6 +109,7 @@ class SimpleCycuCico:
         d: webdriver.Edge
         WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'logTable'))
 
+        log_table:
         log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
 
         last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
@@ -117,5 +117,20 @@ class SimpleCycuCico:
         sign_log: SignLog = SignLog(
             date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
             state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
-        logging.info(f'{sign_log=}')
         return sign_log
+
+    def clock(self, state: State):
+        self.edge_driver.get(Url.BASE)
+
+        d: webdriver.Edge
+        WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+
+        if state == State.CLOCK_IN:
+            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
+        elif state == State.CLOCK_OUT:
+            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
+
+        WebDriverWait(self.edge_driver, 10).until(
+            lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
+
+        self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
