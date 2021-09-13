@@ -334,6 +334,9 @@ class MainWindow(UI, sdk.Singleton):
         self.specific_dates_text_edit.setPlainText('\n'.join(value))
 
     def on_status_model_changed(self, value: sdk.Status):
+        if not value:
+            return
+
         self.status_label.setText(
             f"Status: Clocked {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
             f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")

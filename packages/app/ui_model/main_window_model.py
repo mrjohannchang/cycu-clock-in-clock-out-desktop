@@ -263,7 +263,7 @@ class MainWindowModel(UIModel):
         return self._status
 
     @status.setter
-    def status(self, value: sdk.Status):
+    def status(self, value: Optional[sdk.Status]):
         self._status = value
 
     @property
@@ -341,7 +341,7 @@ class MainWindowModel(UIModel):
         self.cancel_push_button_enabled = True
 
     def update_status(self):
-        self.status: sdk.Status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
+        self.status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
 
     def clock_in(self):
         sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)

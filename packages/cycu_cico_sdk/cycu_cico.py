@@ -6,9 +6,10 @@ import re
 import shutil
 import stat
 import urllib.parse
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -27,9 +28,11 @@ class SimpleCycuCico:
         self.password: str = password
 
         self.clean_up()
+
         edge_options: webdriver.EdgeOptions = webdriver.EdgeOptions()
         edge_options.add_argument(f"user-data-dir={os.getcwd()}")
         self.edge_driver: webdriver.Edge = webdriver.Edge(options=edge_options)
+
         self.login(username, password)
 
     @classmethod
@@ -91,41 +94,53 @@ class SimpleCycuCico:
     def login(self, username: str, password: str):
         self.edge_driver.get(Url.BASE)
 
-        d: webdriver.Edge
-        WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.NAME, 'UserNm'))
-        self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
-        self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
-        self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
+        try:
+            d: webdriver.Edge
+            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.NAME, 'UserNm'))
+            self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
 
-        WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'profile'))
+            WebDriverWait(self.edge_driver, 1).until(lambda d: d.find_element(By.NAME, 'UserPasswd'))
+            self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
+            self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
 
-    def get_status(self) -> Status:
+            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'profile'))
+        except TimeoutException as e:
+            logging.exception(e)
+
+    def get_status(self) -> Optional[Status]:
+        status: Optional[Status] = None
+
         self.edge_driver.get(urllib.parse.urljoin(Url.BASE, Url.ATTENDANCE))
 
-        d: webdriver.Edge
-        WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.ID, 'logTable'))
+        try:
+            d: webdriver.Edge
+            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'logTable'))
+            log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
+            last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
+            last_sign_state: str = re.search('無紙化平台簽.', log)[0]
+            status = Status(
+                date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
+                state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
+        except TimeoutException as e:
+            logging.exception(e)
 
-        log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
-
-        last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
-        last_sign_state: str = re.search('無紙化平台簽.', log)[0]
-        status: Status = Status(
-            date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
-            state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
         return status
 
     def clock(self, state: State):
         self.edge_driver.get(Url.BASE)
 
-        d: webdriver.Edge
-        WebDriverWait(self.edge_driver, 10).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+        try:
+            d: webdriver.Edge
 
-        if state == State.CLOCK_IN:
-            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
-        elif state == State.CLOCK_OUT:
-            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
+            if state == State.CLOCK_IN:
+                WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+                self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
+            elif state == State.CLOCK_OUT:
+                WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-info'))
+                self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
 
-        WebDriverWait(self.edge_driver, 10).until(
-            lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
-
-        self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
+            WebDriverWait(self.edge_driver, 6).until(
+                lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
+            self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
+        except TimeoutException as e:
+            logging.exception(e)
