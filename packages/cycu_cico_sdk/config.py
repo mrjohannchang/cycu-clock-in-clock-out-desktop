@@ -1,11 +1,12 @@
 import dataclasses
 import datetime
-import logging
 import pathlib
 from typing import Any, IO, Optional
 
 import dacite
 import toml
+
+from .log import get_logger
 
 CONFIG_VERSION: int = 1
 CONFIG_FILENAME: str = 'config.toml'
@@ -37,7 +38,7 @@ def get_config() -> Config:
         except FileNotFoundError:
             pass
         except Exception as e:
-            logging.exception(e)
+            get_logger().exception(e)
 
     if not config:
         config = Config()
@@ -51,7 +52,7 @@ def save_config():
         with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
             toml.dump(dataclasses.asdict(config), f)
     except Exception as e:
-        logging.exception(e)
+        get_logger().exception(e)
 
 
 config: Optional[Config] = None

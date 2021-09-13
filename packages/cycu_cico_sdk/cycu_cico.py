@@ -1,6 +1,5 @@
 import dataclasses
 import datetime
-import logging
 import os
 import re
 import shutil
@@ -14,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
 from .constant import State, Url
+from .log import get_logger
 
 
 @dataclasses.dataclass
@@ -42,7 +42,7 @@ class SimpleCycuCico:
                 os.chmod(path, stat.S_IWRITE)
                 func(path)
             except Exception as e:
-                logging.exception(e)
+                get_logger().exception(e)
 
         path: str
         for path in [
@@ -89,7 +89,7 @@ class SimpleCycuCico:
                     os.chmod(path, stat.S_IWRITE)
                     os.remove(path)
                 except Exception as e:
-                    logging.exception(e)
+                    get_logger().exception(e)
 
     def login(self, username: str, password: str):
         self.edge_driver.get(Url.BASE)
@@ -105,7 +105,7 @@ class SimpleCycuCico:
 
             WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'profile'))
         except TimeoutException as e:
-            logging.exception(e)
+            get_logger().exception(e)
 
     def get_status(self) -> Optional[Status]:
         status: Optional[Status] = None
@@ -122,8 +122,9 @@ class SimpleCycuCico:
                 date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
                 state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
         except TimeoutException as e:
-            logging.exception(e)
+            get_logger().exception(e)
 
+        get_logger().info(f"Status: {status}")
         return status
 
     def clock(self, state: State):
@@ -143,4 +144,6 @@ class SimpleCycuCico:
                 lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
             self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
         except TimeoutException as e:
-            logging.exception(e)
+            get_logger().exception(e)
+
+        get_logger().info(f"Clocked {state.name}")
