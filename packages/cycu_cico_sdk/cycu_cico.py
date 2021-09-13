@@ -46,6 +46,7 @@ class SimpleCycuCico:
             'Ad Blocking',
             'BrowserMetrics',
             'CertificateRevocation',
+            'chrome_debug.log',
             'Crashpad',
             'CrashpadMetrics-active.pma',
             'CrashpadMetrics.pma',

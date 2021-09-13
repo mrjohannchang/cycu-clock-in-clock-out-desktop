@@ -104,7 +104,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Cancel</string>
+                 <string>🤷 Cancel</string>
                 </property>
                </widget>
               </item>
@@ -293,7 +293,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Edit</string>
+                 <string>✍ Edit</string>
                 </property>
                </widget>
               </item>
@@ -306,7 +306,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Save</string>
+                 <string>💾 Save</string>
                 </property>
                </widget>
               </item>
@@ -330,7 +330,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Clock out</string>
+                 <string>🕔 Clock out</string>
                 </property>
                </widget>
               </item>
@@ -343,7 +343,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Clock in</string>
+                 <string>🕗 Clock in</string>
                 </property>
                </widget>
               </item>
@@ -358,6 +358,7 @@
                 <property name="font">
                  <font>
                   <pointsize>15</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -391,6 +392,7 @@
                 <property name="font">
                  <font>
                   <pointsize>15</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -411,7 +413,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Start</string>
+                 <string>🏎 Start</string>
                 </property>
                </widget>
               </item>
@@ -424,7 +426,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Stop</string>
+                 <string>🏁 Stop</string>
                 </property>
                </widget>
               </item>
