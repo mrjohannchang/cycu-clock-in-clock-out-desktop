@@ -155,6 +155,66 @@ class SimpleCycuCico:
         get_logger().info(f"Clocked {state.name}")
 
 
+class CycuCicoScheduler:
+    def __init__(self, status: Status):
+        self.status: Status = status
+
+    def next(self) -> Status:
+        next_date_time: datetime.datetime
+        next_state = State.CLOCK_OUT if self.status.state == State.CLOCK_IN else State.CLOCK_IN
+
+        now: datetime.datetime = datetime.datetime.now()
+        if next_state == State.CLOCK_OUT:
+            if now.day > self.status.date_time.day:
+                next_date_time = datetime.datetime.now()
+            elif now > datetime.datetime(
+                    self.status.date_time.year, self.status.date_time.month, self.status.date_time.day,
+                    get_config().clock_out_end_time.hour,
+                    get_config().clock_out_end_time.minute,
+                    get_config().clock_out_end_time.second):
+                next_date_time = datetime.datetime.now()
+            else:
+                start_point: datetime = datetime.datetime(
+                    now.year, now.month, now.day,
+                    get_config().clock_out_start_time.hour,
+                    get_config().clock_out_start_time.minute,
+                    get_config().clock_out_start_time.second)
+                end_point: datetime = datetime.datetime(
+                    now.year, now.month, now.day,
+                    get_config().clock_out_end_time.hour,
+                    get_config().clock_out_end_time.minute,
+                    get_config().clock_out_end_time.second)
+                offset: datetime.timedelta = datetime.timedelta(
+                    seconds=random.randint(0, int((end_point - start_point).total_seconds())))
+                next_date_time = start_point + offset
+        else:
+            start_point: datetime = datetime.datetime(
+                now.year, now.month, now.day,
+                get_config().clock_in_start_time.hour,
+                get_config().clock_in_start_time.minute,
+                get_config().clock_in_start_time.second)
+            end_point: datetime = datetime.datetime(
+                now.year, now.month, now.day,
+                get_config().clock_in_end_time.hour,
+                get_config().clock_in_end_time.minute,
+                get_config().clock_in_end_time.second)
+            offset: datetime.timedelta = datetime.timedelta(
+                seconds=random.randint(0, int((end_point - start_point).total_seconds())))
+            next_date_time = start_point + offset
+            while next_date_time.day < self.status.date_time.day:
+                next_date_time += datetime.timedelta(days=1)
+            while True:
+                next_date_time += datetime.timedelta(days=1)
+                if get_config().exclude_weekends and next_date_time.weekday() >= 5:
+                    continue
+                if get_config().exclude_specific_dates and next_date_time.date() in map(
+                        datetime.date.fromisoformat, get_config().specific_dates):
+                    continue
+                break
+
+        return Status(date_time=next_date_time, state=next_state)
+
+
 class CycuCicoThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -197,63 +257,6 @@ class CycuCicoThread(threading.Thread):
                         pass
         self.next = None
 
-    def get_next_point_in_the_future_by(self, next_state: State, current_status: Status) -> datetime.datetime:
-        point: datetime.datetime
-
-        now: datetime.datetime = datetime.datetime.now()
-
-        if next_state == State.CLOCK_OUT:
-            if now.day > current_status.date_time.day:
-                point = datetime.datetime.now()
-            elif now > datetime.datetime(
-                    current_status.date_time.year, current_status.date_time.month, current_status.date_time.day,
-                    get_config().clock_out_end_time.hour,
-                    get_config().clock_out_end_time.minute,
-                    get_config().clock_out_end_time.second):
-                point = datetime.datetime.now()
-            else:
-                start_point: datetime = datetime.datetime(
-                    now.year, now.month, now.day,
-                    get_config().clock_out_start_time.hour,
-                    get_config().clock_out_start_time.minute,
-                    get_config().clock_out_start_time.second)
-                end_point: datetime = datetime.datetime(
-                    now.year, now.month, now.day,
-                    get_config().clock_out_end_time.hour,
-                    get_config().clock_out_end_time.minute,
-                    get_config().clock_out_end_time.second)
-                offset: datetime.timedelta = datetime.timedelta(
-                    seconds=random.randint(0, int((end_point - start_point).total_seconds())))
-                point = start_point + offset
-
-        else:
-            start_point: datetime = datetime.datetime(
-                now.year, now.month, now.day,
-                get_config().clock_in_start_time.hour,
-                get_config().clock_in_start_time.minute,
-                get_config().clock_in_start_time.second)
-            end_point: datetime = datetime.datetime(
-                now.year, now.month, now.day,
-                get_config().clock_in_end_time.hour,
-                get_config().clock_in_end_time.minute,
-                get_config().clock_in_end_time.second)
-            offset: datetime.timedelta = datetime.timedelta(
-                seconds=random.randint(0, int((end_point - start_point).total_seconds())))
-            point = start_point + offset
-
-            while point.day < current_status.date_time.day:
-                point += datetime.timedelta(days=1)
-
-            while True:
-                point += datetime.timedelta(days=1)
-                if get_config().exclude_weekends and point.weekday() >= 5:
-                    continue
-                if get_config().exclude_specific_dates and point.date() in map(
-                        datetime.date.fromisoformat, get_config().specific_dates):
-                    continue
-                break
-        return point
-
     async def looper(self):
         get_logger().info(f"Loop started")
         self.loop = asyncio.get_running_loop()
@@ -266,10 +269,7 @@ class CycuCicoThread(threading.Thread):
                 await asyncio.sleep(10)
                 continue
 
-            next_state: State = State.CLOCK_IN if status.state == State.CLOCK_OUT else State.CLOCK_OUT
-            self.next = Status(
-                date_time=self.get_next_point_in_the_future_by(next_state, status),
-                state=next_state)
+            self.next = CycuCicoScheduler(status).next()
 
             try:
                 await asyncio.wait_for(self.need_to_stop, (self.next.date_time-datetime.datetime.now()).total_seconds())
@@ -283,4 +283,4 @@ class CycuCicoThread(threading.Thread):
                 logging.exception(e)
                 break
 
-            SimpleCycuCico(get_config().account, get_config().password).clock(next_state)
+            SimpleCycuCico(get_config().account, get_config().password).clock(self.next.state)
