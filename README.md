@@ -5,7 +5,7 @@
 
 ## Usage
 
-Just download it from the [release page](https://github.com/changyuheng/cycu-clock-in-clock-out-app/releases) and execute the program. You'll get it instantly.
+Just download the program from the [release page](https://github.com/changyuheng/cycu-clock-in-clock-out-app/releases) and execute it. You'll get it instantly.
 
 ## Development
 
