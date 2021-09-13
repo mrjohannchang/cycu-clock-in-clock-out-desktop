@@ -345,20 +345,26 @@ class MainWindow(UI, sdk.Singleton):
             self.next_label.setText("Status: Clocked <in/out> at <time> on <date>")
             return
 
+        date: str = 'today' if value.date_time.date() == datetime.date.today() \
+            else 'tomorrow' if value.date_time.date() == datetime.date.today() + datetime.timedelta(days=1) \
+            else 'on ' + value.date_time.date().isoformat()
+
         self.status_label.setText(
             f"Status: Clocked {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
-            f" at {value.date_time.time().isoformat()}"
-            f" {'today' if value.date_time.date() == datetime.date.today() else 'on ' + value.date_time.date().isoformat()}")
+            f" at {value.date_time.time().isoformat()} {date}")
 
     def on_next_model_changed(self, value: Optional[sdk.Status]):
         if not value:
             self.next_label.setText("Next: Clock <in/out> at <time> on <date>")
             return
 
+        date: str = 'today' if value.date_time.date() == datetime.date.today() \
+            else 'tomorrow' if value.date_time.date() == datetime.date.today() + datetime.timedelta(days=1) \
+            else 'on ' + value.date_time.date().isoformat()
+
         self.next_label.setText(
             f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
-            f" at {value.date_time.time().isoformat()}"
-            f" {'today' if value.date_time.date() == datetime.date.today() else 'on ' + value.date_time.date().isoformat()}")
+            f" at {value.date_time.time().isoformat()} {date}")
 
     def on_account_line_edit_changed(self, value: str):
         self.main_window_model.account = value
