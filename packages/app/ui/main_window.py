@@ -147,6 +147,8 @@ class MainWindow(UI, sdk.Singleton):
         self.edit_push_button.clicked.connect(self.on_edit_push_button_clicked)
         self.clock_in_push_button.clicked.connect(self.on_clock_in_push_button_clicked)
         self.clock_out_push_button.clicked.connect(self.on_clock_out_push_button_clicked)
+        self.start_push_button.clicked.connect(self.on_start_push_button_clicked)
+        self.stop_push_button.clicked.connect(self.on_stop_push_button_clicked)
 
         self.tab_widget.setEnabled(main_window_model.tab_bar_enabled)
         self.account_line_edit.setEnabled(main_window_model.account_line_edit_enabled)
@@ -168,8 +170,10 @@ class MainWindow(UI, sdk.Singleton):
         self.stop_push_button.setEnabled(main_window_model.stop_push_button_enabled)
         self.start_push_button.setEnabled(main_window_model.start_push_button_enabled)
 
-        if 1 <= self.tab_widget.currentIndex() <= 2:
+        if self.tab_widget.currentIndex() == 1:
             main_window_model.update_status()
+        elif self.tab_widget.currentIndex() == 2:
+            self.main_window_model.update_start_push_button_state()
         return self
 
     def inflate(self, ui_path: Optional[pathlib.Path] = None) -> MainWindow:
@@ -229,7 +233,7 @@ class MainWindow(UI, sdk.Singleton):
         if index == 1:
             self.main_window_model.update_status()
         elif index == 2:
-            pass
+            self.main_window_model.update_start_push_button_state()
 
         sdk.get_config().active_tab = index
         sdk.save_config()
@@ -341,10 +345,13 @@ class MainWindow(UI, sdk.Singleton):
             f"Status: Clocked {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
             f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
 
-    def on_next_model_changed(self, value: sdk.Status):
-        self.next_label.setText(
-            f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
-            f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
+    def on_next_model_changed(self, value: Optional[sdk.Status]):
+        if value:
+            self.next_label.setText(
+                f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
+                f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
+        else:
+            self.next_label.setText("Next: Clock <in/out> at <time> on <date>")
 
     def on_account_line_edit_changed(self, value: str):
         self.main_window_model.account = value

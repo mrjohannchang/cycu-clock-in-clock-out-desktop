@@ -1,9 +1,13 @@
+import asyncio
 import dataclasses
 import datetime
+import logging
 import os
+import random
 import re
 import shutil
 import stat
+import threading
 import urllib.parse
 from typing import Any, Callable, Optional
 
@@ -12,8 +16,10 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
+from .config import get_config
 from .constant import State, Url
 from .log import get_logger
+from .util import asyncio_run
 
 
 @dataclasses.dataclass
@@ -114,7 +120,7 @@ class SimpleCycuCico:
 
         try:
             d: webdriver.Edge
-            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'logTable'))
+            WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.ID, 'logTable'))
             log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
             last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
             last_sign_state: str = re.search('無紙化平台簽.', log)[0]
@@ -147,3 +153,134 @@ class SimpleCycuCico:
             get_logger().exception(e)
 
         get_logger().info(f"Clocked {state.name}")
+
+
+class CycuCicoThread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.loop: Optional[asyncio.BaseEventLoop] = None
+        self.need_to_stop: Optional[asyncio.Future] = None
+
+        self._next: Optional[Status] = None
+        self._on_next_changed_listeners: list[Callable[[Optional[Status]], None]] = list()
+
+    @property
+    def next(self) -> Optional[Status]:
+        return self._next
+
+    @next.setter
+    def next(self, value: Optional[Status]):
+        self._next = value
+        get_logger().info(f"Next: {value}")
+
+        fn: Callable[[Optional[Status]], None]
+        for fn in self._on_next_changed_listeners:
+            fn(value)
+
+    def add_on_next_changed_listener(self, listener: Callable[[Optional[Status]], None]):
+        self._on_next_changed_listeners.append(listener)
+
+    def start(self):
+        super().start()
+
+    def run(self):
+        asyncio_run(self.looper())
+
+    def stop(self):
+        if self.need_to_stop:
+            if not self.need_to_stop.done():
+                if self.loop:
+                    try:
+                        self.loop.call_soon_threadsafe(self.need_to_stop.cancel)
+                    except Exception:
+                        pass
+        self.next = None
+
+    def get_next_point_in_the_future_by(self, next_state: State, current_status: Status) -> datetime.datetime:
+        point: datetime.datetime
+
+        now: datetime.datetime = datetime.datetime.now()
+
+        if next_state == State.CLOCK_OUT:
+            if now.day > current_status.date_time.day:
+                point = datetime.datetime.now()
+            elif now > datetime.datetime(
+                    current_status.date_time.year, current_status.date_time.month, current_status.date_time.day,
+                    get_config().clock_out_end_time.hour,
+                    get_config().clock_out_end_time.minute,
+                    get_config().clock_out_end_time.second):
+                point = datetime.datetime.now()
+            else:
+                start_point: datetime = datetime.datetime(
+                    now.year, now.month, now.day,
+                    get_config().clock_out_start_time.hour,
+                    get_config().clock_out_start_time.minute,
+                    get_config().clock_out_start_time.second)
+                end_point: datetime = datetime.datetime(
+                    now.year, now.month, now.day,
+                    get_config().clock_out_end_time.hour,
+                    get_config().clock_out_end_time.minute,
+                    get_config().clock_out_end_time.second)
+                offset: datetime.timedelta = datetime.timedelta(
+                    seconds=random.randint(0, int((end_point - start_point).total_seconds())))
+                point = start_point + offset
+
+        else:
+            start_point: datetime = datetime.datetime(
+                now.year, now.month, now.day,
+                get_config().clock_in_start_time.hour,
+                get_config().clock_in_start_time.minute,
+                get_config().clock_in_start_time.second)
+            end_point: datetime = datetime.datetime(
+                now.year, now.month, now.day,
+                get_config().clock_in_end_time.hour,
+                get_config().clock_in_end_time.minute,
+                get_config().clock_in_end_time.second)
+            offset: datetime.timedelta = datetime.timedelta(
+                seconds=random.randint(0, int((end_point - start_point).total_seconds())))
+            point = start_point + offset
+
+            while point.day < current_status.date_time.day:
+                point += datetime.timedelta(days=1)
+
+            while True:
+                point += datetime.timedelta(days=1)
+                if get_config().exclude_weekends and point.weekday() >= 5:
+                    continue
+                if get_config().exclude_specific_dates and point.date() in map(
+                        datetime.date.fromisoformat, get_config().specific_dates):
+                    continue
+                break
+        return point
+
+    async def looper(self):
+        get_logger().info(f"Loop started")
+        self.loop = asyncio.get_running_loop()
+        self.need_to_stop = asyncio.get_running_loop().create_future()
+
+        while True:
+            status: Status = SimpleCycuCico(get_config().account, get_config().password).get_status()
+
+            if not status:
+                await asyncio.sleep(10)
+                continue
+
+            next_state: State = State.CLOCK_IN if status.state == State.CLOCK_OUT else State.CLOCK_OUT
+            self.next = Status(
+                date_time=self.get_next_point_in_the_future_by(next_state, status),
+                state=next_state)
+
+            try:
+                await asyncio.wait_for(self.need_to_stop, (self.next.date_time-datetime.datetime.now()).total_seconds())
+            except asyncio.TimeoutError:
+                pass
+            except asyncio.CancelledError:
+                get_logger().info(f"Loop stopped")
+                break
+            except Exception as e:
+                get_logger().info(f"Loop stopped")
+                logging.exception(e)
+                break
+
+            SimpleCycuCico(get_config().account, get_config().password).clock(next_state)

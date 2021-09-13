@@ -8,7 +8,7 @@ formatter: logging.Formatter = logging.Formatter(
     ' %(filename)s:%(lineno)d %(message)s')
 
 logger: logging.Logger = logging.getLogger('CYCU-Clock-in-Clock-out')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 file_handler: logging.FileHandler = logging.FileHandler('cycu-clco.log')
 file_handler.setFormatter(formatter)
@@ -17,7 +17,7 @@ logger.addHandler(file_handler)
 
 stream_handler: logging.StreamHandler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
-stream_handler.setLevel(logging.INFO)
+stream_handler.setLevel(logging.DEBUG)
 logger.addHandler(stream_handler)
 
 

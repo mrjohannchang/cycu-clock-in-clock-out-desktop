@@ -1,4 +1,7 @@
-from typing import Any, Callable, TypeVar, Union
+import asyncio
+import os
+import threading
+from typing import Any, Callable, Optional, TypeVar, Union
 
 T: type = TypeVar('T')
 
@@ -83,3 +86,27 @@ class Singleton:
         if cls not in cls._instance:
             cls._instance[cls] = super().__call__(*args, **kwargs)
         return cls._instance[cls]
+
+
+def asyncio_run(aw, policy: Optional[asyncio.AbstractEventLoopPolicy] = None) -> Any:
+    if policy:
+        asyncio.set_event_loop_policy(policy)
+
+    if os.name == 'nt':
+        # FIXME: The following 2 lines are a workaround for: https://github.com/aio-libs/aiohttp/issues/3816
+        if not policy:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+        if threading.current_thread() is threading.main_thread():
+            loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+        else:
+            # asyncio.get_event_loop() cannot automatically create an event loop when there is not one on Windows
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        res: Any = loop.run_until_complete(aw)
+
+        if not threading.current_thread() is threading.main_thread():
+            loop.close()
+        return res
+    return asyncio.run(aw)

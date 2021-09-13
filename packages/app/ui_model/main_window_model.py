@@ -9,6 +9,8 @@ class MainWindowModel(UIModel):
     def __init__(self):
         super().__init__()
 
+        self.repetition_thread: Optional[sdk.CycuCicoThread] = None
+
         self._tab_bar_enabled: bool = True
         self._account_line_edit_enabled: bool = False
         self._password_line_edit_enabled: bool = False
@@ -23,8 +25,8 @@ class MainWindowModel(UIModel):
         self._cancel_push_button_enabled: bool = False
         self._edit_push_button_enabled: bool = True
 
-        self._clock_in_push_button_enabled: bool = True
-        self._clock_out_push_button_enabled: bool = True
+        self._clock_in_push_button_enabled: bool = False
+        self._clock_out_push_button_enabled: bool = False
 
         self._stop_push_button_enabled: bool = False
         self._start_push_button_enabled: bool = False
@@ -209,6 +211,7 @@ class MainWindowModel(UIModel):
     @clock_in_start_time.setter
     def clock_in_start_time(self, value: datetime.time):
         self._clock_in_start_time = value
+        self.update_start_push_button_state()
 
     @property
     def clock_in_end_time(self) -> datetime.time:
@@ -217,6 +220,7 @@ class MainWindowModel(UIModel):
     @clock_in_end_time.setter
     def clock_in_end_time(self, value: datetime.time):
         self._clock_in_end_time = value
+        self.update_start_push_button_state()
 
     @property
     def clock_out_start_time(self) -> datetime.time:
@@ -225,6 +229,7 @@ class MainWindowModel(UIModel):
     @clock_out_start_time.setter
     def clock_out_start_time(self, value: datetime.time):
         self._clock_out_start_time = value
+        self.update_start_push_button_state()
 
     @property
     def clock_out_end_time(self) -> datetime.time:
@@ -233,6 +238,7 @@ class MainWindowModel(UIModel):
     @clock_out_end_time.setter
     def clock_out_end_time(self, value: datetime.time):
         self._clock_out_end_time = value
+        self.update_start_push_button_state()
 
     @property
     def exclude_weekends(self) -> bool:
@@ -271,7 +277,7 @@ class MainWindowModel(UIModel):
         return self._next
 
     @next.setter
-    def next(self, value: sdk.Status):
+    def next(self, value: Optional[sdk.Status]):
         self._next = value
 
     def save(self):
@@ -340,8 +346,41 @@ class MainWindowModel(UIModel):
         self.save_push_button_enabled = True
         self.cancel_push_button_enabled = True
 
+    def validate_clock_in_clock_time(self) -> bool:
+        now: datetime.datetime = datetime.datetime.now()
+
+        clock_in_start_time: datetime.datetime = datetime.datetime(
+            now.year, now.month, now.day,
+            self.clock_in_start_time.hour, self.clock_in_start_time.minute, self.clock_in_start_time.second)
+        clock_in_end_time: datetime.datetime = datetime.datetime(
+            now.year, now.month, now.day,
+            self.clock_in_end_time.hour, self.clock_in_end_time.minute, self.clock_in_end_time.second)
+        clock_out_start_time: datetime.datetime = datetime.datetime(
+            now.year, now.month, now.day,
+            self.clock_out_start_time.hour, self.clock_out_start_time.minute, self.clock_out_start_time.second)
+        clock_out_end_time: datetime.datetime = datetime.datetime(
+            now.year, now.month, now.day,
+            self.clock_out_end_time.hour, self.clock_out_end_time.minute, self.clock_out_end_time.second)
+
+        return clock_in_end_time > clock_in_start_time and clock_out_end_time > clock_out_start_time
+
     def update_status(self):
+        self.clock_in_push_button_enabled = False
+        self.clock_out_push_button_enabled = False
+
         self.status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
+
+        if self.status:
+            if self.status.state == sdk.State.CLOCK_IN:
+                self.clock_out_push_button_enabled = True
+            else:
+                self.clock_in_push_button_enabled = True
+
+    def update_start_push_button_state(self):
+        if not self.validate_clock_in_clock_time():
+            self.start_push_button_enabled = False
+        elif not self.repetition_thread:
+            self.start_push_button_enabled = True
 
     def clock_in(self):
         sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)
@@ -352,7 +391,21 @@ class MainWindowModel(UIModel):
         self.update_status()
 
     def stop(self):
-        pass
+        self.start_push_button_enabled = True
+        self.stop_push_button_enabled = False
+
+        self.repetition_thread.stop()
+        self.repetition_thread = None
 
     def start(self):
-        pass
+        self.start_push_button_enabled = False
+        self.stop_push_button_enabled = True
+
+        import threading
+        sdk.get_logger().debug(f"model start: {threading.get_ident()}")
+        self.repetition_thread = sdk.CycuCicoThread()
+        self.repetition_thread.add_on_next_changed_listener(self.on_next_changed)
+        self.repetition_thread.start()
+
+    def on_next_changed(self, value: Optional[sdk.Status]):
+        self.next = value
