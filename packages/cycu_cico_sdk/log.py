@@ -1,11 +1,10 @@
-import importlib.metadata
 import logging
+
+from .constant import VERSION
 
 
 formatter: logging.Formatter = logging.Formatter(
-    '%(levelname)s: %(asctime)s'
-    f' v{importlib.metadata.version("cycu-clock-in-clock-out-app")}'
-    ' %(filename)s:%(lineno)d %(message)s')
+    f"%(levelname)s: %(asctime)s v{VERSION} %(filename)s:%(lineno)d %(message)s")
 
 logger: logging.Logger = logging.getLogger('CYCU-Clock-in-Clock-out')
 logger.setLevel(logging.DEBUG)

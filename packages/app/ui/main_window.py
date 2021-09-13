@@ -187,8 +187,11 @@ class MainWindow(UI, sdk.Singleton):
             qui_loader: QUiLoader = QUiLoader()
             self.main_window = qui_loader.load(main_window_ui_qfile)
             main_window_ui_qfile.close()
-            if not self.main_window:
-                raise RuntimeError(qui_loader.errorString())
+
+        if not self.main_window:
+            raise RuntimeError(qui_loader.errorString())
+
+        self.main_window.setWindowTitle(self.main_window.windowTitle() + f" {sdk.VERSION}")
 
         app_icon: pathlib.Path
         with importlib.resources.path(__package__, 'app.ico') as app_icon:
@@ -339,19 +342,23 @@ class MainWindow(UI, sdk.Singleton):
 
     def on_status_model_changed(self, value: sdk.Status):
         if not value:
+            self.next_label.setText("Status: Clocked <in/out> at <time> on <date>")
             return
 
         self.status_label.setText(
             f"Status: Clocked {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
-            f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
+            f" at {value.date_time.time().isoformat()}"
+            f" {'today' if value.date_time.date() == datetime.date.today() else 'on ' + value.date_time.date().isoformat()}")
 
     def on_next_model_changed(self, value: Optional[sdk.Status]):
-        if value:
-            self.next_label.setText(
-                f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
-                f" at {value.date_time.time().isoformat()} on {value.date_time.date().isoformat()}")
-        else:
+        if not value:
             self.next_label.setText("Next: Clock <in/out> at <time> on <date>")
+            return
+
+        self.next_label.setText(
+            f"Next: Clock {'in' if value.state == sdk.State.CLOCK_IN else 'out'}"
+            f" at {value.date_time.time().isoformat()}"
+            f" {'today' if value.date_time.date() == datetime.date.today() else 'on ' + value.date_time.date().isoformat()}")
 
     def on_account_line_edit_changed(self, value: str):
         self.main_window_model.account = value

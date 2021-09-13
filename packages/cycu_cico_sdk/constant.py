@@ -1,5 +1,9 @@
 import dataclasses
+import importlib.metadata
 import enum
+
+
+VERSION: str = importlib.metadata.version("cycu-clock-in-clock-out-app")
 
 
 class State(enum.IntEnum):
