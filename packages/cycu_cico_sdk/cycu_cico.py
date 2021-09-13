@@ -4,11 +4,12 @@ import logging
 import os
 import re
 import shutil
+import stat
 import urllib.parse
+from typing import Any, Callable
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 
 from .constant import State, Url
@@ -31,66 +32,60 @@ class SimpleCycuCico:
         self.edge_driver: webdriver.Edge = webdriver.Edge(options=edge_options)
         self.login(username, password)
 
-    def clean_up(self):
-        shutil.rmtree('Ad Blocking', ignore_errors=True)
-        shutil.rmtree('BrowserMetrics', ignore_errors=True)
-        shutil.rmtree('Crashpad', ignore_errors=True)
-        try:
-            os.remove('CrashpadMetrics-active.pma')
-        except Exception:
-            pass
-        try:
-            os.remove('CrashpadMetrics.pma')
-        except Exception:
-            pass
-        shutil.rmtree('Default', ignore_errors=True)
-        try:
-            os.remove('DevToolsActivePort')
-        except Exception:
-            pass
-        try:
-            os.remove('First Run')
-        except Exception:
-            pass
-        try:
-            os.remove('FirstLaunchAfterInstallation')
-        except Exception:
-            pass
-        try:
-            os.remove('Functional Data')
-        except Exception:
-            pass
-        try:
-            os.remove('Functional Data-wal')
-        except Exception:
-            pass
-        try:
-            os.remove('Functional SAN Data')
-        except Exception:
-            pass
-        try:
-            os.remove('Functional SAN Data-wal')
-        except Exception:
-            pass
-        shutil.rmtree('GrShaderCache', ignore_errors=True)
-        try:
-            os.remove('Last Browser')
-        except Exception:
-            pass
-        try:
-            os.remove('Last Version')
-        except Exception:
-            pass
-        try:
-            os.remove('Local State')
-        except Exception:
-            pass
-        shutil.rmtree('ShaderCache', ignore_errors=True)
-        shutil.rmtree('SmartScreen', ignore_errors=True)
-        try:
-            os.remove('edge_shutdown_ms.txt')
-        except Exception:
-            pass
+    @classmethod
+    def clean_up(cls):
+        def on_rm_error(func: Callable[[Any], None], path: str, exc_info: Any):
+            try:
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            except Exception as e:
+                logging.exception(e)
+
+        path: str
+        for path in [
+            'Ad Blocking',
+            'BrowserMetrics',
+            'CertificateRevocation',
+            'Crashpad',
+            'CrashpadMetrics-active.pma',
+            'CrashpadMetrics.pma',
+            'Default',
+            'DevToolsActivePort',
+            'Edge Shopping',
+            'edge_shutdown_ms.txt',
+            'First Run',
+            'FirstLaunchAfterInstallation',
+            'Functional Data',
+            'Functional Data-wal',
+            'Functional SAN Data',
+            'Functional SAN Data-wal',
+            'GrShaderCache',
+            'Last Browser',
+            'Last Version',
+            'Local State',
+            'OriginTrials',
+            'RecoveryImproved',
+            'Safe Browsing',
+            'ShaderCache',
+            'SmartScreen',
+            'Speech Recognition',
+            'Subresource Filter',
+            'Trust Protection Lists',
+            'Web Notifications Deny List',
+            'WidevineCdm',
+            'ZxcvbnData',
+        ]:
+            if not os.path.exists(path):
+                continue
+
+            if os.path.isdir(path) and not os.path.islink(path):
+                shutil.rmtree(path, onerror=on_rm_error)
+            else:
+                try:
+                    os.chmod(path, stat.S_IWRITE)
+                    os.remove(path)
+                except Exception as e:
+                    logging.exception(e)
 
     def login(self, username: str, password: str):
         self.edge_driver.get(Url.BASE)

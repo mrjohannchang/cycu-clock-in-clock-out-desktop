@@ -1,5 +1,4 @@
 import datetime
-
 from typing import Optional
 
 import cycu_cico_sdk as sdk
