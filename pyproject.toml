@@ -7,7 +7,7 @@ authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/changyuheng/cycu-clock-in-clock-out-app"
 packages = [
-    { include = "app", from = "packages" },
+    { include = "cycu_cico_app", from = "packages" },
     { include = "cycu_cico_sdk", from = "packages" },
 ]
 
@@ -22,7 +22,7 @@ toml = "^0.10.2"
 pyinstaller = "^4.5.1"
 
 [tool.poetry.scripts]
-cycu-cico-app = 'app.app:main'
+cycu-cico-app = 'cycu_cico_app.app:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
