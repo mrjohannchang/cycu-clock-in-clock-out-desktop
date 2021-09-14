@@ -98,61 +98,50 @@ class SimpleCycuCico:
                     get_logger().exception(e)
 
     def login(self, username: str, password: str):
+        get_logger().info(f"Logging in...")
         self.edge_driver.get(Url.BASE)
 
-        try:
-            d: webdriver.Edge
-            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.NAME, 'UserNm'))
-            self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
+        d: webdriver.Edge
+        WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.NAME, 'UserNm'))
+        self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
 
-            WebDriverWait(self.edge_driver, 1).until(lambda d: d.find_element(By.NAME, 'UserPasswd'))
-            self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
-            self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
+        WebDriverWait(self.edge_driver, 1).until(lambda d: d.find_element(By.NAME, 'UserPasswd'))
+        self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
+        self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
 
-            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'profile'))
-        except TimeoutException as e:
-            get_logger().exception(e)
+        WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'profile'))
 
     def get_status(self) -> Optional[Status]:
-        status: Optional[Status] = None
-
+        get_logger().info("Getting the status...")
         self.edge_driver.get(urllib.parse.urljoin(Url.BASE, Url.ATTENDANCE))
 
-        try:
-            d: webdriver.Edge
-            WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.ID, 'logTable'))
-            log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
-            last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
-            last_sign_state: str = re.search('無紙化平台簽.', log)[0]
-            status = Status(
-                date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
-                state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
-        except TimeoutException as e:
-            get_logger().exception(e)
-
+        d: webdriver.Edge
+        WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.ID, 'logTable'))
+        log: str = self.edge_driver.find_element(By.ID, 'logTable').get_attribute('innerHTML')
+        last_sign_date_time: str = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}', log)[0]
+        last_sign_state: str = re.search('無紙化平台簽.', log)[0]
+        status: Status = Status(
+            date_time=datetime.datetime.strptime(last_sign_date_time, '%Y-%m-%d %H:%M'),
+            state=State.CLOCK_IN if '到' in last_sign_state else State.CLOCK_OUT)
         get_logger().info(f"Status: {status}")
         return status
 
     def clock(self, state: State):
+        get_logger().info(f"Clocking {state}...")
         self.edge_driver.get(Url.BASE)
 
-        try:
-            d: webdriver.Edge
+        d: webdriver.Edge
 
-            if state == State.CLOCK_IN:
-                WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
-                self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
-            elif state == State.CLOCK_OUT:
-                WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-info'))
-                self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
+        if state == State.CLOCK_IN:
+            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
+        elif state == State.CLOCK_OUT:
+            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-info'))
+            self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
 
-            WebDriverWait(self.edge_driver, 6).until(
-                lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
-            self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
-        except TimeoutException as e:
-            get_logger().exception(e)
-
-        get_logger().info(f"Clocked {state.name}")
+        WebDriverWait(self.edge_driver, 6).until(
+            lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
+        self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
 
 
 class CycuCicoScheduler:
@@ -216,8 +205,8 @@ class CycuCicoScheduler:
 
 
 class CycuCicoThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, daemon: bool = True, **kwargs):
+        super().__init__(*args, daemon=daemon, **kwargs)
 
         self.loop: Optional[asyncio.BaseEventLoop] = None
         self.need_to_stop: Optional[asyncio.Future] = None
@@ -231,8 +220,8 @@ class CycuCicoThread(threading.Thread):
 
     @next.setter
     def next(self, value: Optional[Status]):
-        self._next = value
         get_logger().info(f"Next: {value}")
+        self._next = value
 
         fn: Callable[[Optional[Status]], None]
         for fn in self._on_next_changed_listeners:
@@ -263,10 +252,13 @@ class CycuCicoThread(threading.Thread):
         self.need_to_stop = asyncio.get_running_loop().create_future()
 
         while True:
-            status: Status = SimpleCycuCico(get_config().account, get_config().password).get_status()
-
+            status: Optional[Status] = None
+            try:
+                status = SimpleCycuCico(get_config().account, get_config().password).get_status()
+            except TimeoutException as e:
+                get_logger().exception(e)
             if not status:
-                await asyncio.sleep(10)
+                await asyncio.sleep(3)
                 continue
 
             self.next = CycuCicoScheduler(status).next()
@@ -283,4 +275,11 @@ class CycuCicoThread(threading.Thread):
                 logging.exception(e)
                 break
 
-            SimpleCycuCico(get_config().account, get_config().password).clock(self.next.state)
+            get_logger().info(f"Doing the scheduled action...")
+            for _ in range(3):
+                try:
+                    SimpleCycuCico(get_config().account, get_config().password).clock(self.next.state)
+                    break
+                except TimeoutException as e:
+                    logging.exception(e)
+                await asyncio.sleep(3)

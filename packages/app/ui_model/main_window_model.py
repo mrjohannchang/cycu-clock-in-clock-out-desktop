@@ -1,6 +1,8 @@
 import datetime
 from typing import Optional
 
+from selenium.common.exceptions import TimeoutException
+
 import cycu_cico_sdk as sdk
 from .ui_model import UIModel
 
@@ -367,14 +369,25 @@ class MainWindowModel(UIModel):
     def update_status(self):
         self.clock_in_push_button_enabled = False
         self.clock_out_push_button_enabled = False
+        status: Optional[sdk.Status] = None
 
-        self.status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
+        for _ in range(3):
+            try:
+                status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
+                break
+            except TimeoutException as e:
+                sdk.get_logger().exception(e)
 
-        if self.status:
-            if self.status.state == sdk.State.CLOCK_IN:
+        if status:
+            if status.state == sdk.State.CLOCK_IN:
                 self.clock_out_push_button_enabled = True
             else:
                 self.clock_in_push_button_enabled = True
+        else:
+            self.clock_out_push_button_enabled = False
+            self.clock_in_push_button_enabled = False
+
+        self.status = status
 
     def update_start_push_button_state(self):
         if not self.validate_clock_in_clock_time():
@@ -383,11 +396,21 @@ class MainWindowModel(UIModel):
             self.start_push_button_enabled = True
 
     def clock_in(self):
-        sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)
+        for _ in range(3):
+            try:
+                sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)
+                break
+            except TimeoutException as e:
+                sdk.get_logger().exception(e)
         self.update_status()
 
     def clock_out(self):
-        sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_OUT)
+        for _ in range(3):
+            try:
+                sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_OUT)
+                break
+            except TimeoutException as e:
+                sdk.get_logger().exception(e)
         self.update_status()
 
     def stop(self):
