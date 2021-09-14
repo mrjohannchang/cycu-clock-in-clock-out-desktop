@@ -148,7 +148,10 @@ class CycuCicoScheduler:
     def __init__(self, status: Status):
         self.status: Status = status
 
-    def next(self) -> Status:
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Status:
         next_date_time: datetime.datetime
         next_state = State.CLOCK_OUT if self.status.state == State.CLOCK_IN else State.CLOCK_IN
 
@@ -201,7 +204,8 @@ class CycuCicoScheduler:
                     continue
                 break
 
-        return Status(date_time=next_date_time, state=next_state)
+        self.status = Status(date_time=next_date_time, state=next_state)
+        return self.status
 
 
 class CycuCicoThread(threading.Thread):
@@ -209,7 +213,7 @@ class CycuCicoThread(threading.Thread):
         super().__init__(*args, daemon=daemon, **kwargs)
 
         self.loop: Optional[asyncio.BaseEventLoop] = None
-        self.need_to_stop: Optional[asyncio.Future] = None
+        self.stop_future: Optional[asyncio.Future] = None
 
         self._next: Optional[Status] = None
         self._on_next_changed_listeners: list[Callable[[Optional[Status]], None]] = list()
@@ -237,11 +241,12 @@ class CycuCicoThread(threading.Thread):
         asyncio_run(self.looper())
 
     def stop(self):
-        if self.need_to_stop:
-            if not self.need_to_stop.done():
+        if self.stop_future:
+            if not self.stop_future.done():
                 if self.loop:
                     try:
-                        self.loop.call_soon_threadsafe(self.need_to_stop.cancel)
+                        self.loop.call_soon_threadsafe(self.stop_future.cancel)
+                        self.stop_future = None
                     except Exception:
                         pass
         self.next = None
@@ -249,9 +254,13 @@ class CycuCicoThread(threading.Thread):
     async def looper(self):
         get_logger().info(f"Loop started")
         self.loop = asyncio.get_running_loop()
-        self.need_to_stop = asyncio.get_running_loop().create_future()
+        self.stop_future = asyncio.get_running_loop().create_future()
 
         while True:
+            if not self.stop_future:
+                get_logger().info(f"Loop stopped")
+                break
+
             status: Optional[Status] = None
             try:
                 status = SimpleCycuCico(get_config().account, get_config().password).get_status()
@@ -261,10 +270,10 @@ class CycuCicoThread(threading.Thread):
                 await asyncio.sleep(3)
                 continue
 
-            self.next = CycuCicoScheduler(status).next()
+            self.next = next(CycuCicoScheduler(status))
 
             try:
-                await asyncio.wait_for(self.need_to_stop, (self.next.date_time-datetime.datetime.now()).total_seconds())
+                await asyncio.wait_for(self.stop_future, (self.next.date_time - datetime.datetime.now()).total_seconds())
             except asyncio.TimeoutError:
                 pass
             except asyncio.CancelledError:
