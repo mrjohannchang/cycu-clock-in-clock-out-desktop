@@ -12,7 +12,6 @@ import urllib.parse
 from typing import Any, Callable, Optional
 
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -275,10 +274,9 @@ class CycuCicoThread(threading.Thread):
             status: Optional[Status] = None
             try:
                 status = SimpleCycuCico(get_config().account, get_config().password).get_status()
-            except TimeoutException as e:
+            except Exception as e:
                 get_logger().exception(e)
             if not status:
-                await asyncio.sleep(3)
                 continue
 
             self.next = next(CycuCicoScheduler(status))
@@ -304,6 +302,5 @@ class CycuCicoThread(threading.Thread):
                 try:
                     SimpleCycuCico(get_config().account, get_config().password).clock(self.next.state)
                     break
-                except TimeoutException as e:
+                except Exception as e:
                     logging.exception(e)
-                await asyncio.sleep(3)

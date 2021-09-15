@@ -1,8 +1,6 @@
 import datetime
 from typing import Optional
 
-from selenium.common.exceptions import TimeoutException
-
 import cycu_cico_sdk as sdk
 from .ui_model import UIModel
 
@@ -375,7 +373,7 @@ class MainWindowModel(UIModel):
             try:
                 status = sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).get_status()
                 break
-            except TimeoutException as e:
+            except Exception as e:
                 sdk.get_logger().exception(e)
 
         if status:
@@ -400,7 +398,7 @@ class MainWindowModel(UIModel):
             try:
                 sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_IN)
                 break
-            except TimeoutException as e:
+            except Exception as e:
                 sdk.get_logger().exception(e)
         self.update_status()
 
@@ -409,7 +407,7 @@ class MainWindowModel(UIModel):
             try:
                 sdk.SimpleCycuCico(sdk.get_config().account, sdk.get_config().password).clock(sdk.State.CLOCK_OUT)
                 break
-            except TimeoutException as e:
+            except Exception as e:
                 sdk.get_logger().exception(e)
         self.update_status()
 
