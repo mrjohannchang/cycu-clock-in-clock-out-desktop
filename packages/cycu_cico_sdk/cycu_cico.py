@@ -214,6 +214,7 @@ class CycuCicoThread(threading.Thread):
 
         self.loop: Optional[asyncio.BaseEventLoop] = None
         self.stop_future: Optional[asyncio.Future] = None
+        self._on_stopped_listeners: list[Callable[[], None]] = list()
 
         self._next: Optional[Status] = None
         self._on_next_changed_listeners: list[Callable[[Optional[Status]], None]] = list()
@@ -234,6 +235,9 @@ class CycuCicoThread(threading.Thread):
     def add_on_next_changed_listener(self, listener: Callable[[Optional[Status]], None]):
         self._on_next_changed_listeners.append(listener)
 
+    def add_on_stopped_listener(self, listener: Callable[[], None]):
+        self._on_stopped_listeners.append(listener)
+
     def start(self):
         super().start()
 
@@ -249,7 +253,13 @@ class CycuCicoThread(threading.Thread):
                         self.stop_future = None
                     except Exception:
                         pass
+
+    def on_stopped(self):
         self.next = None
+
+        fn: Callable[[], None]
+        for fn in self._on_stopped_listeners:
+            fn()
 
     async def looper(self):
         get_logger().info(f"Loop started")
@@ -259,6 +269,7 @@ class CycuCicoThread(threading.Thread):
         while True:
             if not self.stop_future:
                 get_logger().info(f"Loop stopped")
+                self.on_stopped()
                 break
 
             status: Optional[Status] = None
@@ -280,10 +291,12 @@ class CycuCicoThread(threading.Thread):
                 pass
             except asyncio.CancelledError:
                 get_logger().info(f"Loop stopped")
+                self.on_stopped()
                 break
             except Exception as e:
-                get_logger().info(f"Loop stopped")
                 logging.exception(e)
+                get_logger().info(f"Loop stopped")
+                self.on_stopped()
                 break
 
             get_logger().info(f"Doing the scheduled action...")

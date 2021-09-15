@@ -414,21 +414,22 @@ class MainWindowModel(UIModel):
         self.update_status()
 
     def stop(self):
-        self.start_push_button_enabled = True
-        self.stop_push_button_enabled = False
-
         self.repetition_thread.stop()
-        self.repetition_thread = None
+        self.on_stopped()
 
     def start(self):
         self.start_push_button_enabled = False
         self.stop_push_button_enabled = True
 
-        import threading
-        sdk.get_logger().debug(f"model start: {threading.get_ident()}")
         self.repetition_thread = sdk.CycuCicoThread()
         self.repetition_thread.add_on_next_changed_listener(self.on_next_changed)
+        self.repetition_thread.add_on_stopped_listener(self.on_stopped)
         self.repetition_thread.start()
 
     def on_next_changed(self, value: Optional[sdk.Status]):
         self.next = value
+
+    def on_stopped(self):
+        self.start_push_button_enabled = True
+        self.stop_push_button_enabled = False
+        self.repetition_thread = None
