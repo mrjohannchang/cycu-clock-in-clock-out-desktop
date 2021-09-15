@@ -273,7 +273,9 @@ class CycuCicoThread(threading.Thread):
             self.next = next(CycuCicoScheduler(status))
 
             try:
-                await asyncio.wait_for(self.stop_future, (self.next.date_time - datetime.datetime.now()).total_seconds())
+                await asyncio.wait_for(
+                    asyncio.shield(self.stop_future),
+                    (self.next.date_time - datetime.datetime.now()).total_seconds())
             except asyncio.TimeoutError:
                 pass
             except asyncio.CancelledError:
