@@ -1,4 +1,4 @@
-# CYCU Clock-in Clock-out App 中原大學 自動打卡
+# CYCU Clock-in Clock-out Desktop 中原大學 自動打卡
 
 ![doc/screenshot.png](doc/screenshot.png)
 ![doc/screencast.gif](doc/screencast.gif)
