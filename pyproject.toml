@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cycu-clock-in-clock-out-app"
-version = "1.3.1"
+version = "1.3.2"
 description = "CYCU 自動打卡"
 license = "MPL-2.0"
 authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
