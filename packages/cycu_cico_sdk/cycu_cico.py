@@ -14,6 +14,7 @@ from typing import Any, Callable, Optional
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 from .config import get_config
 from .constant import State, Url
@@ -36,7 +37,7 @@ class SimpleCycuCico:
 
         edge_options: webdriver.EdgeOptions = webdriver.EdgeOptions()
         edge_options.add_argument(f"user-data-dir={os.getcwd()}")
-        self.edge_driver: webdriver.Edge = webdriver.Edge(options=edge_options)
+        self.edge_driver: webdriver.Edge = webdriver.Edge(EdgeChromiumDriverManager().install(), options=edge_options)
 
         self.login(username, password)
 
