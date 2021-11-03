@@ -18,8 +18,7 @@ a = Analysis([os.path.join('.venv', ('Scripts' if os.name == 'nt' else 'bin'), '
                  (os.path.join(
                      'packages', 'cycu_cico_app', 'ui', 'anime-anime-girls-hatsune-miku-vocaloid-wallpaper-preview.jpg'),
                          os.path.join('cycu_cico_app', 'ui')),
-                 (os.path.join('packages', 'cycu_cico_app', 'ui', 'app.ico'), os.path.join('cycu_cico_app', 'ui')),
-                 ('msedgedriver.exe', '.')],
+                 (os.path.join('packages', 'cycu_cico_app', 'ui', 'app.ico'), os.path.join('cycu_cico_app', 'ui'))],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
