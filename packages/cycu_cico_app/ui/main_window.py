@@ -342,7 +342,7 @@ class MainWindow(UI, sdk.Singleton):
 
     def on_status_model_changed(self, value: sdk.Status):
         if not value:
-            self.next_label.setText("Status: Clocked <in/out> at <time> on <date>")
+            self.status_label.setText("Status: Clocked <in/out> at <time> on <date>")
             return
 
         date: str = 'today' if value.date_time.date() == datetime.date.today() \
