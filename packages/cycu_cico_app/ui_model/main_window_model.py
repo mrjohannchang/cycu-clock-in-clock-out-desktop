@@ -365,6 +365,8 @@ class MainWindowModel(UIModel):
         return clock_in_end_time > clock_in_start_time and clock_out_end_time > clock_out_start_time
 
     def update_status(self):
+        self.status = None
+
         self.clock_in_push_button_enabled = False
         self.clock_out_push_button_enabled = False
         status: Optional[sdk.Status] = None
