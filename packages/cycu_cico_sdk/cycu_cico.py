@@ -8,6 +8,7 @@ import re
 import shutil
 import stat
 import threading
+import time
 import urllib.parse
 from typing import Any, Callable, Optional
 
@@ -103,14 +104,14 @@ class SimpleCycuCico:
         self.edge_driver.get(Url.BASE)
 
         d: webdriver.Edge
-        WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.NAME, 'UserNm'))
+        WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.NAME, 'UserNm'))
         self.edge_driver.find_element(By.NAME, 'UserNm').send_keys(username)
 
         WebDriverWait(self.edge_driver, 1).until(lambda d: d.find_element(By.NAME, 'UserPasswd'))
         self.edge_driver.find_element(By.NAME, 'UserPasswd').send_keys(password)
         self.edge_driver.find_element(By.NAME, 'UserPasswd').submit()
 
-        WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.ID, 'profile'))
+        WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.ID, 'profile'))
 
     def get_status(self) -> Optional[Status]:
         get_logger().info("Getting the status...")
@@ -134,14 +135,17 @@ class SimpleCycuCico:
         d: webdriver.Edge
 
         if state == State.CLOCK_IN:
-            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+            WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-primary'))
+            time.sleep(12)
             self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-primary').click()
         elif state == State.CLOCK_OUT:
-            WebDriverWait(self.edge_driver, 6).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-info'))
+            WebDriverWait(self.edge_driver, 12).until(lambda d: d.find_element(By.CSS_SELECTOR, '.btn-info'))
+            time.sleep(12)
             self.edge_driver.find_element(By.CSS_SELECTOR, '.btn-info').click()
 
-        WebDriverWait(self.edge_driver, 6).until(
+        WebDriverWait(self.edge_driver, 12).until(
             lambda d: d.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm'))
+        time.sleep(3)
         self.edge_driver.find_element(By.CSS_SELECTOR, '.swal2-styled.swal2-confirm').click()
 
 
