@@ -270,6 +270,7 @@ class CycuCicoThread(threading.Thread):
         get_logger().info(f"Loop started")
         self.loop = asyncio.get_running_loop()
         self.stop_future = asyncio.get_running_loop().create_future()
+        error_count: int = 0
 
         while True:
             if not self.stop_future:
@@ -277,12 +278,20 @@ class CycuCicoThread(threading.Thread):
                 self.on_stopped()
                 break
 
+            if error_count >= 12:
+                get_logger().info(f"Loop stopped due to consecutive errors")
+                self.on_stopped()
+                break
+
+            await asyncio.sleep(12)
+
             status: Optional[Status] = None
             try:
                 status = SimpleCycuCico(get_config().account, get_config().password).get_status()
             except Exception as e:
                 get_logger().exception(e)
             if not status:
+                error_count += 1
                 continue
 
             self.next = next(CycuCicoScheduler(status))
@@ -309,4 +318,9 @@ class CycuCicoThread(threading.Thread):
                     SimpleCycuCico(get_config().account, get_config().password).clock(self.next.state)
                     break
                 except Exception as e:
+                    error_count += 1
                     logging.exception(e)
+            else:
+                continue
+
+            error_count = 0
