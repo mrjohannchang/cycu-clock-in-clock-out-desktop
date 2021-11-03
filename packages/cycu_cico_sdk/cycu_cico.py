@@ -70,6 +70,7 @@ class SimpleCycuCico:
             'Functional SAN Data',
             'Functional SAN Data-wal',
             'GrShaderCache',
+            'hyphen-data',
             'Last Browser',
             'Last Version',
             'Local State',
